@@ -34,6 +34,7 @@
 #include "2d/nav_mesh_queries_2d.h"
 #include "nav_rid_2d.h"
 #include "nav_utils_2d.h"
+#include "core/navigation/nav_map_base.h"
 
 #include "core/math/math_defs.h"
 #include "core/object/worker_thread_pool.h"
@@ -101,31 +102,9 @@ class NavMap2D : public NavRid2D {
 	// Performance Monitor
 	Nav2D::PerformanceData performance_data;
 
-	struct {
-		struct {
-			RWLock rwlock;
-			SelfList<NavRegion2D>::List list;
-		} regions;
-		struct {
-			RWLock rwlock;
-			SelfList<NavLink2D>::List list;
-		} links;
-		struct {
-			RWLock rwlock;
-			SelfList<NavAgent2D>::List list;
-		} agents;
-		struct {
-			RWLock rwlock;
-			SelfList<NavObstacle2D>::List list;
-		} obstacles;
-	} sync_dirty_requests;
+	NavMapDirtyRequests<NavRegion2D, NavLink2D, NavAgent2D, NavObstacle2D> sync_dirty_requests;
 
-	struct {
-		struct {
-			RWLock rwlock;
-			SelfList<NavRegion2D>::List list;
-		} regions;
-	} async_dirty_requests;
+	NavAsyncDirtyRequests<NavRegion2D> async_dirty_requests;
 
 	int path_query_slots_max = 4;
 

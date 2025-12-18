@@ -34,6 +34,7 @@
 #include "3d/nav_mesh_queries_3d.h"
 #include "nav_rid_3d.h"
 #include "nav_utils_3d.h"
+#include "core/navigation/nav_map_base.h"
 
 #include "core/math/math_defs.h"
 #include "core/object/worker_thread_pool.h"
@@ -109,31 +110,9 @@ class NavMap3D : public NavRid3D {
 	// Performance Monitor
 	Nav3D::PerformanceData performance_data;
 
-	struct {
-		struct {
-			RWLock rwlock;
-			SelfList<NavRegion3D>::List list;
-		} regions;
-		struct {
-			RWLock rwlock;
-			SelfList<NavLink3D>::List list;
-		} links;
-		struct {
-			RWLock rwlock;
-			SelfList<NavAgent3D>::List list;
-		} agents;
-		struct {
-			RWLock rwlock;
-			SelfList<NavObstacle3D>::List list;
-		} obstacles;
-	} sync_dirty_requests;
+	NavMapDirtyRequests<NavRegion3D, NavLink3D, NavAgent3D, NavObstacle3D> sync_dirty_requests;
 
-	struct {
-		struct {
-			RWLock rwlock;
-			SelfList<NavRegion3D>::List list;
-		} regions;
-	} async_dirty_requests;
+	NavAsyncDirtyRequests<NavRegion3D> async_dirty_requests;
 
 	int path_query_slots_max = 4;
 
