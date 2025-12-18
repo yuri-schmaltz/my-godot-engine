@@ -392,20 +392,61 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 	bool xl_remapped = false;
 	const String &remapped_path = _path_remap(load_task.local_path, &xl_remapped);
 
-	// Check for timeout before starting the load
-	uint64_t elapsed_usec = OS::get_singleton()->get_ticks_usec() - load_task.start_time_usec;
-	uint64_t timeout_usec = (uint64_t)load_task.timeout_ms * 1000;
-	
+	// Resource loading with retry and exponential backoff
 	Error load_err = OK;
 	Ref<Resource> res;
-	
-	if (elapsed_usec >= timeout_usec) {
-		load_err = ERR_TIMEOUT;
-		WARN_PRINT(vformat("Resource loading timed out: %s (timeout: %d ms)", load_task.local_path, load_task.timeout_ms));
-	} else {
-		res = _load(remapped_path, remapped_path != load_task.local_path ? load_task.local_path : String(), load_task.type_hint, load_task.cache_mode, &load_err, load_task.use_sub_threads, &load_task.progress);
+	bool load_succeeded = false;
+
+	while (!load_succeeded && load_task.retry_count <= load_task.max_retries) {
+		// Check for timeout before attempting load
+		uint64_t elapsed_usec = OS::get_singleton()->get_ticks_usec() - load_task.start_time_usec;
+		uint64_t timeout_usec = (uint64_t)load_task.timeout_ms * 1000;
+
+		if (elapsed_usec >= timeout_usec) {
+			load_err = ERR_TIMEOUT;
+			WARN_PRINT(vformat("Resource loading timed out: %s (timeout: %d ms, attempt %d/%d)",
+					load_task.local_path, load_task.timeout_ms, load_task.retry_count + 1, load_task.max_retries + 1));
+			break;
+		}
+
+		// Attempt to load the resource
+		res = _load(remapped_path, remapped_path != load_task.local_path ? load_task.local_path : String(),
+				load_task.type_hint, load_task.cache_mode, &load_err, load_task.use_sub_threads, &load_task.progress);
 		if (MessageQueue::get_singleton() != MessageQueue::get_main_singleton()) {
 			MessageQueue::get_singleton()->flush();
+		}
+
+		// Check if load succeeded
+		if (load_err == OK && res.is_valid()) {
+			load_succeeded = true;
+			if (load_task.retry_count > 0) {
+				print_verbose(vformat("Resource loading succeeded after %d retries: %s", load_task.retry_count, load_task.local_path));
+			}
+		} else if (load_task.retry_count < load_task.max_retries) {
+			// Retry only for transient errors (file I/O, network issues)
+			bool should_retry = (load_err == ERR_FILE_CANT_OPEN ||
+					load_err == ERR_FILE_CANT_READ ||
+					load_err == ERR_FILE_CORRUPT ||
+					load_err == ERR_TIMEOUT ||
+					load_err == ERR_UNAVAILABLE);
+
+			if (should_retry) {
+				// Exponential backoff: 1s, 2s, 4s
+				uint32_t backoff_ms = 1000 * (1 << load_task.retry_count); // 2^retry_count seconds
+				WARN_PRINT(vformat("Resource loading failed (error %d), retrying in %d ms: %s (attempt %d/%d)",
+						load_err, backoff_ms, load_task.local_path, load_task.retry_count + 1, load_task.max_retries + 1));
+
+				OS::get_singleton()->delay_usec(backoff_ms * 1000);
+				load_task.retry_count++;
+			} else {
+				// Error is not transient, don't retry
+				break;
+			}
+		} else {
+			// Max retries reached
+			ERR_PRINT(vformat("Resource loading failed after %d retries: %s (error: %d)",
+					load_task.max_retries + 1, load_task.local_path, load_err));
+			break;
 		}
 	}
 

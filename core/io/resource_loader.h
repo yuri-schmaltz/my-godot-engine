@@ -187,6 +187,8 @@ private:
 		ThreadLoadStatus status = THREAD_LOAD_IN_PROGRESS;
 		uint64_t start_time_usec = 0; // Start time for timeout tracking
 		uint32_t timeout_ms = 30000; // Default 30 seconds timeout
+		uint32_t max_retries = 3; // Maximum number of retry attempts
+		uint32_t retry_count = 0; // Current retry attempt
 		ResourceFormatLoader::CacheMode cache_mode = ResourceFormatLoader::CACHE_MODE_REUSE;
 		Error error = OK;
 		Ref<Resource> resource;
