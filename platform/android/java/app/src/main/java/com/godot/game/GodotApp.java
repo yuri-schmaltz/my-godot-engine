@@ -36,6 +36,8 @@ import org.godotengine.godot.GodotActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.godot.game.BuildConfig;
+
 import androidx.activity.EdgeToEdge;
 import androidx.core.splashscreen.SplashScreen;
 

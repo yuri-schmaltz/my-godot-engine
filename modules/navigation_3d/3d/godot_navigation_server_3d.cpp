@@ -187,7 +187,7 @@ COMMAND_2(map_set_merge_rasterizer_cell_scale, RID, p_map, float, p_value) {
 
 float GodotNavigationServer3D::map_get_merge_rasterizer_cell_scale(RID p_map) const {
 	NavMap3D *map = map_owner.get_or_null(p_map);
-	ERR_FAIL_NULL_V(map, false);
+	ERR_FAIL_NULL_V(map, 0.0f);
 
 	return map->get_merge_rasterizer_cell_scale();
 }
@@ -248,7 +248,7 @@ Vector<Vector3> GodotNavigationServer3D::map_get_path(RID p_map, Vector3 p_origi
 	query_parameters->set_pathfinding_algorithm(NavigationPathQueryParameters3D::PathfindingAlgorithm::PATHFINDING_ALGORITHM_ASTAR);
 	query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL);
 	if (!p_optimize) {
-		query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PATH_POSTPROCESSING_EDGECENTERED);
+		query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_EDGECENTERED);
 	}
 
 	Ref<NavigationPathQueryResult3D> query_result;

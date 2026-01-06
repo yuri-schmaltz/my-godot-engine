@@ -196,7 +196,7 @@ void RendererSceneCull::occluder_set_mesh(RID p_occluder, const PackedVector3Arr
 /* SCENARIO API */
 
 void RendererSceneCull::_instance_pair(Instance *p_A, Instance *p_B) {
-	RendererSceneCull *self = (RendererSceneCull *)singleton;
+	RendererSceneCull *self = RendererSceneCull::singleton;
 	Instance *A = p_A;
 	Instance *B = p_B;
 
@@ -288,7 +288,7 @@ void RendererSceneCull::_instance_pair(Instance *p_A, Instance *p_B) {
 				InstanceData &idata = A->scenario->instance_data[A->array_index];
 				idata.flags |= InstanceData::FLAG_LIGHTMAP_CAPTURE;
 			}
-			((RendererSceneCull *)self)->_instance_queue_update(A, false, false); //need to update capture
+			self->_instance_queue_update(A, false, false); //need to update capture
 		}
 
 	} else if (self->geometry_instance_pair_mask & (1 << RS::INSTANCE_VOXEL_GI) && B->base_type == RS::INSTANCE_VOXEL_GI && ((1 << A->base_type) & RS::INSTANCE_GEOMETRY_MASK)) {
@@ -321,7 +321,7 @@ void RendererSceneCull::_instance_pair(Instance *p_A, Instance *p_B) {
 }
 
 void RendererSceneCull::_instance_unpair(Instance *p_A, Instance *p_B) {
-	RendererSceneCull *self = singleton;
+	RendererSceneCull *self = RendererSceneCull::singleton;
 	Instance *A = p_A;
 	Instance *B = p_B;
 

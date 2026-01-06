@@ -110,7 +110,6 @@ class ResourceLoader {
 	enum {
 		MAX_LOADERS = 64
 	};
-
 	struct ThreadLoadTask;
 
 public:
