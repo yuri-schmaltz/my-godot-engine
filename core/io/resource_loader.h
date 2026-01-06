@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include "core/error/error_codes.h"
 #include "core/io/resource.h"
 #include "core/object/gdvirtual.gen.inc"
 #include "core/object/worker_thread_pool.h"
@@ -141,6 +142,7 @@ public:
 
 	static Ref<LoadToken> _load_start(const String &p_path, const String &p_type_hint, LoadThreadMode p_thread_mode, ResourceFormatLoader::CacheMode p_cache_mode, bool p_for_user = false);
 	static Ref<Resource> _load_complete(LoadToken &p_load_token, Error *r_error);
+	static ErrorCode get_threaded_load_error_code(const String &p_path);
 
 private:
 	static LoadToken *_load_threaded_request_reuse_user_token(const String &p_path);
@@ -191,6 +193,7 @@ private:
 		uint32_t retry_count = 0; // Current retry attempt
 		ResourceFormatLoader::CacheMode cache_mode = ResourceFormatLoader::CACHE_MODE_REUSE;
 		Error error = OK;
+		ErrorCode error_code = ErrorCode::OK;
 		Ref<Resource> resource;
 		HashSet<String> sub_tasks;
 

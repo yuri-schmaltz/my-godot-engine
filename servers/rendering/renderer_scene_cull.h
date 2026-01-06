@@ -34,6 +34,7 @@
 #include "core/math/transform_interpolator.h"
 #include "core/templates/bin_sorted_array.h"
 #include "core/templates/local_vector.h"
+#include "core/templates/object_pool.h"
 #include "core/templates/paged_allocator.h"
 #include "core/templates/paged_array.h"
 #include "core/templates/pass_func.h"
@@ -605,14 +606,7 @@ public:
 			dependency_tracker.deleted_callback = dependency_deleted;
 		}
 
-		~Instance() {
-			if (base_data) {
-				memdelete(base_data);
-			}
-			if (custom_aabb) {
-				memdelete(custom_aabb);
-			}
-		}
+		~Instance();
 	};
 
 	mutable SelfList<Instance>::List _instance_update_list;
@@ -1411,6 +1405,13 @@ public:
 	struct InterpolationData {
 		bool interpolation_enabled = false;
 	} _interpolation_data;
+
+	void _release_base_data(RS::InstanceType p_type, InstanceBaseData *p_base_data);
+
+	mutable ObjectPool<InstanceGeometryData, true> geometry_data_pool;
+	mutable ObjectPool<InstanceLightData, true> light_data_pool;
+	mutable ObjectPool<InstanceReflectionProbeData, true> reflection_probe_data_pool;
+	mutable ObjectPool<InstanceDecalData, true> decal_data_pool;
 
 	RendererSceneCull();
 	virtual ~RendererSceneCull();

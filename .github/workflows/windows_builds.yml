@@ -81,7 +81,7 @@ jobs:
         shell: bash
         run: |
           echo "SCCACHE_DIR=${{ github.workspace }}/sccache" >> $GITHUB_ENV
-          echo "SCCACHE_CACHE_SIZE=2G" >> $GITHUB_ENV
+          echo "SCCACHE_CACHE_SIZE=10G" >> $GITHUB_ENV
 
       - name: Download Direct3D 12 SDK components
         shell: sh

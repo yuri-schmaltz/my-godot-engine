@@ -299,6 +299,14 @@ public:
 private:
 	void internal_free_agent(RID p_object);
 	void internal_free_obstacle(RID p_object);
+
+	struct MapProcessTaskData {
+		double delta;
+		NavMap3D **maps;
+		void *results;
+	};
+
+	void _process_map(uint32_t p_index, MapProcessTaskData *p_data);
 };
 
 #undef COMMAND_1

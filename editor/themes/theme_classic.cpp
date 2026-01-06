@@ -369,7 +369,7 @@ void ThemeClassic::populate_standard_styles(const Ref<EditorTheme> &p_theme, Edi
 			// is only relevant for default tooltips.
 
 			p_theme->set_color(SceneStringName(font_color), "TooltipLabel", p_config.font_hover_color);
-			p_theme->set_color("font_shadow_color", "TooltipLabel", Color(0, 0, 0, 0));
+			p_theme->set_color("font_shadow_color", "TooltipLabel", Color(1, 1, 1, 0));
 
 			Ref<StyleBoxFlat> style_tooltip = p_config.popup_style->duplicate();
 			style_tooltip->set_shadow_size(0);
@@ -1187,7 +1187,7 @@ void ThemeClassic::populate_standard_styles(const Ref<EditorTheme> &p_theme, Edi
 		p_theme->set_stylebox("focus", "RichTextLabel", EditorThemeManager::make_empty_stylebox());
 
 		p_theme->set_color("default_color", "RichTextLabel", p_config.font_color);
-		p_theme->set_color("font_shadow_color", "RichTextLabel", Color(0, 0, 0, 0));
+		p_theme->set_color("font_shadow_color", "RichTextLabel", Color(1, 1, 1, 0));
 		p_theme->set_color("font_outline_color", "RichTextLabel", p_config.font_outline_color);
 		p_theme->set_color("selection_color", "RichTextLabel", p_config.selection_color);
 
@@ -1202,7 +1202,7 @@ void ThemeClassic::populate_standard_styles(const Ref<EditorTheme> &p_theme, Edi
 		p_theme->set_stylebox("focus", "Label", p_config.button_style_focus);
 
 		p_theme->set_color(SceneStringName(font_color), "Label", p_config.font_color);
-		p_theme->set_color("font_shadow_color", "Label", Color(0, 0, 0, 0));
+		p_theme->set_color("font_shadow_color", "Label", Color(1, 1, 1, 0));
 		p_theme->set_color("font_outline_color", "Label", p_config.font_outline_color);
 
 		p_theme->set_constant("shadow_offset_x", "Label", 1 * EDSCALE);
@@ -1450,7 +1450,7 @@ void ThemeClassic::populate_standard_styles(const Ref<EditorTheme> &p_theme, Edi
 			p_theme->set_stylebox(CoreStringName(normal), "GraphFrameTitleLabel", memnew(StyleBoxEmpty));
 			p_theme->set_font_size(SceneStringName(font_size), "GraphFrameTitleLabel", 22 * EDSCALE);
 			p_theme->set_color(SceneStringName(font_color), "GraphFrameTitleLabel", Color(1, 1, 1));
-			p_theme->set_color("font_shadow_color", "GraphFrameTitleLabel", Color(0, 0, 0, 0));
+			p_theme->set_color("font_shadow_color", "GraphFrameTitleLabel", Color(1, 1, 1, 0));
 			p_theme->set_color("font_outline_color", "GraphFrameTitleLabel", Color(1, 1, 1));
 			p_theme->set_constant("shadow_offset_x", "GraphFrameTitleLabel", 1 * EDSCALE);
 			p_theme->set_constant("shadow_offset_y", "GraphFrameTitleLabel", 1 * EDSCALE);
@@ -1680,7 +1680,7 @@ void ThemeClassic::populate_editor_styles(const Ref<EditorTheme> &p_theme, Edito
 
 		p_theme->set_type_variation("RunBarButtonMovieMakerEnabled", "RunBarButton");
 		p_theme->set_stylebox("hover_pressed", "RunBarButtonMovieMakerEnabled", movie_maker_button_enabled_hover);
-		p_theme->set_color("icon_normal_color", "RunBarButtonMovieMakerEnabled", Color(0, 0, 0, 0.7));
+		p_theme->set_color("icon_normal_color", "RunBarButtonMovieMakerEnabled", Color(1, 1, 1, 0.8));
 		p_theme->set_color("icon_pressed_color", "RunBarButtonMovieMakerEnabled", Color(0, 0, 0, 0.84));
 		p_theme->set_color("icon_hover_color", "RunBarButtonMovieMakerEnabled", Color(0, 0, 0, 0.9));
 		p_theme->set_color("icon_hover_pressed_color", "RunBarButtonMovieMakerEnabled", Color(0, 0, 0, 0.84));
@@ -2327,7 +2327,7 @@ void ThemeClassic::populate_editor_styles(const Ref<EditorTheme> &p_theme, Edito
 
 		// Theme editor.
 		{
-			p_theme->set_color("preview_picker_overlay_color", "ThemeEditor", Color(0.1, 0.1, 0.1, 0.25));
+			p_theme->set_color("preview_picker_overlay_color", "ThemeEditor", Color(0.8, 0.8, 0.8, 0.25));
 
 			Color theme_preview_picker_bg_color = p_config.accent_color;
 			theme_preview_picker_bg_color.a = 0.2;

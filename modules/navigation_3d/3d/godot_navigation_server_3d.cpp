@@ -1380,6 +1380,24 @@ void GodotNavigationServer3D::process(double p_delta_time) {
 	sync();
 }
 
+void GodotNavigationServer3D::_process_map(uint32_t p_index, MapProcessTaskData *p_data) {
+	NavMap3D *map = p_data->maps[p_index];
+	map->sync();
+	map->step(p_data->delta);
+	map->dispatch_callbacks();
+
+	Nav3D::PerformanceData *results = static_cast<Nav3D::PerformanceData *>(p_data->results);
+	results[p_index].pm_region_count = map->get_pm_region_count();
+	results[p_index].pm_agent_count = map->get_pm_agent_count();
+	results[p_index].pm_link_count = map->get_pm_link_count();
+	results[p_index].pm_polygon_count = map->get_pm_polygon_count();
+	results[p_index].pm_edge_count = map->get_pm_edge_count();
+	results[p_index].pm_edge_merge_count = map->get_pm_edge_merge_count();
+	results[p_index].pm_edge_connection_count = map->get_pm_edge_connection_count();
+	results[p_index].pm_edge_free_count = map->get_pm_edge_free_count();
+	results[p_index].pm_obstacle_count = map->get_pm_obstacle_count();
+}
+
 void GodotNavigationServer3D::physics_process(double p_delta_time) {
 	// Called for each physics process step AFTER node and user script physics_process() and BEFORE PhysicsServer sync.
 	// Will NOT run reliably every rendered frame. If there is no physics step this function will not run.
@@ -1404,21 +1422,37 @@ void GodotNavigationServer3D::physics_process(double p_delta_time) {
 	int _new_pm_edge_free_count = 0;
 	int _new_pm_obstacle_count = 0;
 
-	MutexLock lock(operations_mutex);
-	for (uint32_t i(0); i < active_maps.size(); i++) {
-		active_maps[i]->sync();
-		active_maps[i]->step(p_delta_time);
-		active_maps[i]->dispatch_callbacks();
+	LocalVector<NavMap3D *> maps_to_process;
+	{
+		MutexLock lock(operations_mutex);
+		for (uint32_t i = 0; i < active_maps.size(); i++) {
+			maps_to_process.push_back(active_maps[i]);
+		}
+	}
 
-		_new_pm_region_count += active_maps[i]->get_pm_region_count();
-		_new_pm_agent_count += active_maps[i]->get_pm_agent_count();
-		_new_pm_link_count += active_maps[i]->get_pm_link_count();
-		_new_pm_polygon_count += active_maps[i]->get_pm_polygon_count();
-		_new_pm_edge_count += active_maps[i]->get_pm_edge_count();
-		_new_pm_edge_merge_count += active_maps[i]->get_pm_edge_merge_count();
-		_new_pm_edge_connection_count += active_maps[i]->get_pm_edge_connection_count();
-		_new_pm_edge_free_count += active_maps[i]->get_pm_edge_free_count();
-		_new_pm_obstacle_count += active_maps[i]->get_pm_obstacle_count();
+	if (maps_to_process.size() > 0) {
+		LocalVector<Nav3D::PerformanceData> results;
+		results.resize(maps_to_process.size());
+
+		MapProcessTaskData data;
+		data.delta = p_delta_time;
+		data.maps = maps_to_process.ptr();
+		data.results = results.ptr();
+
+		WorkerThreadPool::GroupID group_task = WorkerThreadPool::get_singleton()->add_template_group_task(this, &GodotNavigationServer3D::_process_map, &data, maps_to_process.size(), -1, true, SNAME("NavigationProcessMaps3D"));
+		WorkerThreadPool::get_singleton()->wait_for_group_task_completion(group_task);
+
+		for (uint32_t i = 0; i < results.size(); i++) {
+			_new_pm_region_count += results[i].pm_region_count;
+			_new_pm_agent_count += results[i].pm_agent_count;
+			_new_pm_link_count += results[i].pm_link_count;
+			_new_pm_polygon_count += results[i].pm_polygon_count;
+			_new_pm_edge_count += results[i].pm_edge_count;
+			_new_pm_edge_merge_count += results[i].pm_edge_merge_count;
+			_new_pm_edge_connection_count += results[i].pm_edge_connection_count;
+			_new_pm_edge_free_count += results[i].pm_edge_free_count;
+			_new_pm_obstacle_count += results[i].pm_obstacle_count;
+		}
 	}
 
 	pm_region_count = _new_pm_region_count;

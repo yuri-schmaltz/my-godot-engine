@@ -35,3 +35,7 @@ jobs:
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --files ${{ env.CHANGED_FILES }}
+
+      - name: Color contrast checks
+        run: |
+          python ./misc/scripts/check_color_contrast.py

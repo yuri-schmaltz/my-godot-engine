@@ -69,6 +69,37 @@ void RendererSceneCull::pre_draw(bool p_will_draw) {
 	}
 }
 
+RendererSceneCull::Instance::~Instance() {
+	if (base_data) {
+		RendererSceneCull::singleton->_release_base_data(base_type, base_data);
+	}
+	if (custom_aabb) {
+		memdelete(custom_aabb);
+	}
+}
+
+void RendererSceneCull::_release_base_data(RS::InstanceType p_type, InstanceBaseData *p_base_data) {
+	switch (p_type) {
+		case RS::INSTANCE_MESH:
+		case RS::INSTANCE_MULTIMESH:
+		case RS::INSTANCE_PARTICLES: {
+			geometry_data_pool.release(static_cast<InstanceGeometryData *>(p_base_data));
+		} break;
+		case RS::INSTANCE_LIGHT: {
+			light_data_pool.release(static_cast<InstanceLightData *>(p_base_data));
+		} break;
+		case RS::INSTANCE_REFLECTION_PROBE: {
+			reflection_probe_data_pool.release(static_cast<InstanceReflectionProbeData *>(p_base_data));
+		} break;
+		case RS::INSTANCE_DECAL: {
+			decal_data_pool.release(static_cast<InstanceDecalData *>(p_base_data));
+		} break;
+		default: {
+			memdelete(p_base_data);
+		} break;
+	}
+}
+
 /* CAMERA API */
 
 RID RendererSceneCull::camera_allocate() {
@@ -673,7 +704,7 @@ void RendererSceneCull::instance_set_base(RID p_instance, RID p_base) {
 		}
 
 		if (instance->base_data) {
-			memdelete(instance->base_data);
+			_release_base_data(instance->base_type, instance->base_data);
 			instance->base_data = nullptr;
 		}
 
@@ -697,7 +728,7 @@ void RendererSceneCull::instance_set_base(RID p_instance, RID p_base) {
 				return;
 			}
 			case RS::INSTANCE_LIGHT: {
-				InstanceLightData *light = memnew(InstanceLightData);
+				InstanceLightData *light = light_data_pool.acquire();
 
 				if (scenario && RSG::light_storage->light_get_type(p_base) == RS::LIGHT_DIRECTIONAL) {
 					light->D = scenario->directional_lights.push_back(instance);
@@ -710,7 +741,7 @@ void RendererSceneCull::instance_set_base(RID p_instance, RID p_base) {
 			case RS::INSTANCE_MESH:
 			case RS::INSTANCE_MULTIMESH:
 			case RS::INSTANCE_PARTICLES: {
-				InstanceGeometryData *geom = memnew(InstanceGeometryData);
+				InstanceGeometryData *geom = geometry_data_pool.acquire();
 				instance->base_data = geom;
 				geom->geometry_instance = scene_render->geometry_instance_create(p_base);
 
@@ -759,14 +790,14 @@ void RendererSceneCull::instance_set_base(RID p_instance, RID p_base) {
 				instance->base_data = vnd;
 			} break;
 			case RS::INSTANCE_REFLECTION_PROBE: {
-				InstanceReflectionProbeData *reflection_probe = memnew(InstanceReflectionProbeData);
+				InstanceReflectionProbeData *reflection_probe = reflection_probe_data_pool.acquire();
 				reflection_probe->owner = instance;
 				instance->base_data = reflection_probe;
 
 				reflection_probe->instance = RSG::light_storage->reflection_probe_instance_create(p_base);
 			} break;
 			case RS::INSTANCE_DECAL: {
-				InstanceDecalData *decal = memnew(InstanceDecalData);
+				InstanceDecalData *decal = decal_data_pool.acquire();
 				decal->owner = instance;
 				instance->base_data = decal;
 

@@ -367,6 +367,7 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 		MutexLock thread_load_lock(thread_load_mutex);
 		if (cleaning_tasks) {
 			load_task.status = THREAD_LOAD_FAILED;
+			load_task.error_code = ErrorCode::RESOURCE_LOAD_FAILED;
 			return;
 		}
 	}
@@ -458,8 +459,41 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 	load_task.error = load_err;
 	if (load_task.error != OK) {
 		load_task.status = THREAD_LOAD_FAILED;
+		switch (load_err) {
+			case ERR_FILE_NOT_FOUND:
+				load_task.error_code = ErrorCode::FILE_NOT_FOUND;
+				break;
+			case ERR_FILE_CANT_OPEN:
+				load_task.error_code = ErrorCode::FILE_CANT_OPEN;
+				break;
+			case ERR_FILE_CANT_READ:
+				load_task.error_code = ErrorCode::FILE_CANT_READ;
+				break;
+			case ERR_FILE_CORRUPT:
+				load_task.error_code = ErrorCode::FILE_CORRUPT;
+				break;
+			case ERR_TIMEOUT:
+				load_task.error_code = ErrorCode::RESOURCE_TIMEOUT;
+				break;
+			case ERR_BUSY:
+				load_task.error_code = ErrorCode::RESOURCE_BUSY;
+				break;
+			case ERR_UNAVAILABLE:
+				load_task.error_code = ErrorCode::UNAVAILABLE;
+				break;
+			case ERR_PARSE_ERROR:
+				load_task.error_code = ErrorCode::PARSE_ERROR;
+				break;
+			case ERR_INVALID_DATA:
+				load_task.error_code = ErrorCode::INVALID_DATA;
+				break;
+			default:
+				load_task.error_code = ErrorCode::RESOURCE_LOAD_FAILED;
+				break;
+		}
 	} else {
 		load_task.status = THREAD_LOAD_LOADED;
+		load_task.error_code = ErrorCode::OK;
 	}
 
 	if (load_task.cond_var && load_task.need_wait) {
@@ -1642,3 +1676,15 @@ SelfList<Resource>::List ResourceLoader::remapped_list;
 HashMap<String, Vector<String>> ResourceLoader::translation_remaps;
 
 ResourceLoaderImport ResourceLoader::import = nullptr;
+
+ErrorCode ResourceLoader::get_threaded_load_error_code(const String &p_path) {
+	MutexLock thread_load_lock(thread_load_mutex);
+
+	String local_path = _validate_local_path(p_path);
+
+	if (thread_load_tasks.has(local_path)) {
+		return thread_load_tasks[local_path].error_code;
+	}
+
+	return ErrorCode::OK;
+}
