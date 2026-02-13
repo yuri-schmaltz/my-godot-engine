@@ -42,7 +42,9 @@ class HBoxContainer;
 class MenuButton;
 class RenameDialog;
 class ReparentDialog;
+class Shader;
 class ShaderCreateDialog;
+class ShaderMaterial;
 class TextureRect;
 class VBoxContainer;
 
@@ -276,7 +278,7 @@ class SceneTreeDock : public EditorDock {
 
 	void _perform_instantiate_scenes(const Vector<String> &p_files, Node *p_parent, int p_pos);
 	void _perform_create_audio_stream_players(const Vector<String> &p_files, Node *p_parent, int p_pos);
-	void _replace_with_branch_scene(const String &p_file, Node *base);
+	void _replace_with_branch_scene(const String &p_file, Node *p_base);
 
 	void _remote_tree_selected();
 	void _local_tree_selected();
@@ -304,7 +306,7 @@ class SceneTreeDock : public EditorDock {
 	void _check_object_properties_recursive(Node *p_root_node, Object *p_obj, HashMap<Node *, NodePath> *p_renames, bool p_inside_resource = false) const;
 	bool _check_node_path_recursive(Node *p_root_node, Variant &r_variant, HashMap<Node *, NodePath> *p_renames, bool p_inside_resource = false) const;
 	bool _check_node_recursive(Variant &r_variant, Node *p_node, Node *p_by_node, const String type_hint, String &r_warn_message);
-	void _replace_node(Node *p_node, Node *p_by_node, bool p_keep_properties = true, bool p_remove_old = true);
+	void _replace_node(Node *p_node, Node *p_by_node, bool p_keep_properties = true);
 
 private:
 	static SceneTreeDock *singleton;

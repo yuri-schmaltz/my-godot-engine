@@ -975,11 +975,13 @@ void AccessibilityDriverAccessKit::accessibility_update_add_custom_action(const 
 	_ensure_node(p_id, ae);
 
 	if (!p_action_description.is_empty()) {
-		accesskit_custom_action ca = accesskit_custom_action_new(p_action_id, p_action_description.utf8().ptr());
+		accesskit_custom_action *ca = accesskit_custom_action_new(p_action_id);
+		accesskit_custom_action_set_description(ca, p_action_description.utf8().ptr());
 		accesskit_node_push_custom_action(ae->node, ca);
 	} else {
 		String cs_name = vformat("Custom Action %d", p_action_id);
-		accesskit_custom_action ca = accesskit_custom_action_new(p_action_id, cs_name.utf8().ptr());
+		accesskit_custom_action *ca = accesskit_custom_action_new(p_action_id);
+		accesskit_custom_action_set_description(ca, cs_name.utf8().ptr());
 		accesskit_node_push_custom_action(ae->node, ca);
 	}
 }
@@ -1655,6 +1657,7 @@ AccessibilityDriverAccessKit::AccessibilityDriverAccessKit() {
 	role_map[DisplayServer::AccessibilityRole::ROLE_TITLE_BAR] = ACCESSKIT_ROLE_TITLE_BAR;
 	role_map[DisplayServer::AccessibilityRole::ROLE_DIALOG] = ACCESSKIT_ROLE_DIALOG;
 	role_map[DisplayServer::AccessibilityRole::ROLE_TOOLTIP] = ACCESSKIT_ROLE_TOOLTIP;
+	role_map[DisplayServer::AccessibilityRole::ROLE_REGION] = ACCESSKIT_ROLE_REGION;
 
 	action_map[DisplayServer::AccessibilityAction::ACTION_CLICK] = ACCESSKIT_ACTION_CLICK;
 	action_map[DisplayServer::AccessibilityAction::ACTION_FOCUS] = ACCESSKIT_ACTION_FOCUS;

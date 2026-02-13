@@ -514,7 +514,7 @@ float RichTextLabel::_resize_line(ItemFrame *p_frame, int p_line, const Ref<Font
 					table->columns[i].width = 0;
 				}
 
-				const int available_width = p_width - theme_cache.table_h_separation * (col_count - 1);
+				const int available_width = p_width - l.offset.x - theme_cache.table_h_separation * (col_count - 1);
 				int base_column_width = available_width / col_count;
 
 				for (Item *E : table->subitems) {
@@ -698,7 +698,7 @@ float RichTextLabel::_shape_line(ItemFrame *p_frame, int p_line, const Ref<Font>
 					table->columns[i].width = 0;
 				}
 				// Compute minimum width for each cell.
-				const int available_width = p_width - theme_cache.table_h_separation * (col_count - 1);
+				const int available_width = p_width - l.offset.x - theme_cache.table_h_separation * (col_count - 1);
 				int base_column_width = available_width / col_count;
 				int idx = 0;
 				for (Item *E : table->subitems) {
@@ -865,7 +865,7 @@ void RichTextLabel::_set_table_size(ItemTable *p_table, int p_available_width) {
 
 			float h = frame->lines[i].text_buf->get_size().y + (frame->lines[i].text_buf->get_line_count() - 1) * theme_cache.line_separation;
 			if (i > 0) {
-				h += theme_cache.paragraph_separation;
+				h += theme_cache.paragraph_separation + theme_cache.line_separation;
 			}
 			if (frame->min_size_over.y > 0) {
 				h = MAX(h, frame->min_size_over.y);
@@ -874,7 +874,7 @@ void RichTextLabel::_set_table_size(ItemTable *p_table, int p_available_width) {
 				h = MIN(h, frame->max_size_over.y);
 			}
 			yofs += h;
-			prev_h = frame->lines[i].offset.y + frame->lines[i].text_buf->get_size().y + (frame->lines[i].text_buf->get_line_count() - 1) * theme_cache.line_separation + theme_cache.paragraph_separation;
+			prev_h = frame->lines[i].offset.y + frame->lines[i].text_buf->get_size().y + frame->lines[i].text_buf->get_line_count() * theme_cache.line_separation + theme_cache.paragraph_separation;
 
 			frame->lines[i].offset += offset;
 			row_baseline = MAX(row_baseline, frame->lines[i].text_buf->get_line_ascent(frame->lines[i].text_buf->get_line_count() - 1));
@@ -1621,7 +1621,7 @@ void RichTextLabel::_find_click(ItemFrame *p_frame, const Point2i &p_click, Item
 			// Do not apply to the last line to avoid cutting text.
 			total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + (main->lines[to_line - 1].text_buf->get_line_count() - 1) * theme_cache.line_separation;
 		} else {
-			total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + (main->lines[to_line - 1].text_buf->get_line_count() - 1) * theme_cache.line_separation + theme_cache.paragraph_separation;
+			total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + main->lines[to_line - 1].text_buf->get_line_count() * theme_cache.line_separation + theme_cache.paragraph_separation;
 		}
 	}
 	float vbegin = 0, vsep = 0;
@@ -1653,7 +1653,7 @@ void RichTextLabel::_find_click(ItemFrame *p_frame, const Point2i &p_click, Item
 	while (ofs.y < size.height && from_line < to_line) {
 		MutexLock lock(main->lines[from_line].text_buf->get_mutex());
 		_find_click_in_line(p_frame, from_line, ofs, text_rect.size.x, vsep, p_click, r_click_frame, r_click_line, r_click_item, r_click_char, false, p_meta);
-		ofs.y += main->lines[from_line].text_buf->get_size().y + (main->lines[from_line].text_buf->get_line_count() - 1) * (theme_cache.line_separation + vsep) + (theme_cache.paragraph_separation + vsep);
+		ofs.y += main->lines[from_line].text_buf->get_size().y + main->lines[from_line].text_buf->get_line_count() * (theme_cache.line_separation + vsep) + (theme_cache.paragraph_separation);
 		if (((r_click_item != nullptr) && ((*r_click_item) != nullptr)) || ((r_click_frame != nullptr) && ((*r_click_frame) != nullptr))) {
 			if (r_outside != nullptr) {
 				*r_outside = false;
@@ -1886,10 +1886,10 @@ float RichTextLabel::_find_click_in_line(ItemFrame *p_frame, int p_line, const V
 		}
 
 		if (line == text_buf->get_line_count() - 1) {
-			off.y += TS->shaped_text_get_descent(rid) + theme_cache.paragraph_separation + p_vsep;
-		} else {
-			off.y += TS->shaped_text_get_descent(rid) + theme_cache.line_separation + p_vsep;
+			off.y += TS->shaped_text_get_descent(rid) + theme_cache.paragraph_separation;
 		}
+
+		off.y += TS->shaped_text_get_descent(rid) + theme_cache.line_separation + p_vsep;
 	}
 
 	// Text line hit.
@@ -2428,7 +2428,7 @@ void RichTextLabel::_notification(int p_what) {
 					// Do not apply to the last line to avoid cutting text.
 					total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + (main->lines[to_line - 1].text_buf->get_line_count() - 1) * theme_cache.line_separation;
 				} else {
-					total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + (main->lines[to_line - 1].text_buf->get_line_count() - 1) * theme_cache.line_separation + theme_cache.paragraph_separation;
+					total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + main->lines[to_line - 1].text_buf->get_line_count() * theme_cache.line_separation + theme_cache.paragraph_separation;
 				}
 			}
 			float vbegin = 0, vsep = 0;
@@ -2606,7 +2606,7 @@ void RichTextLabel::_notification(int p_what) {
 					// Do not apply to the last line to avoid cutting text.
 					total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + (main->lines[to_line - 1].text_buf->get_line_count() - 1) * theme_cache.line_separation;
 				} else {
-					total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + (main->lines[to_line - 1].text_buf->get_line_count() - 1) * theme_cache.line_separation + theme_cache.paragraph_separation;
+					total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + main->lines[to_line - 1].text_buf->get_line_count() * theme_cache.line_separation + theme_cache.paragraph_separation;
 				}
 			}
 			float vbegin = 0, vsep = 0;
@@ -2651,7 +2651,7 @@ void RichTextLabel::_notification(int p_what) {
 				if (drawn_lines > 0) {
 					visible_paragraph_count++;
 				}
-				ofs.y += main->lines[from_line].text_buf->get_size().y + (main->lines[from_line].text_buf->get_line_count() - 1) * (theme_cache.line_separation + vsep) + (theme_cache.paragraph_separation + vsep);
+				ofs.y += main->lines[from_line].text_buf->get_size().y + main->lines[from_line].text_buf->get_line_count() * (theme_cache.line_separation + vsep) + (theme_cache.paragraph_separation);
 				from_line++;
 			}
 			if (scroll_follow_visible_characters && scroll_active) {
@@ -5182,6 +5182,8 @@ void RichTextLabel::set_scroll_active(bool p_active) {
 
 	scroll_active = p_active;
 	vscroll->set_drag_node_enabled(p_active);
+	vscroll->set_visible(p_active);
+	_apply_translation(); // without this, RichLabelText is not updated in the editor/game.
 	queue_redraw();
 }
 
@@ -5735,6 +5737,7 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 			pos = brk_end + 1;
 			tag_stack.push_front("lang");
 		} else if (tag == "br") {
+			// `\n` starts a new paragraph, `\r` just adds a break to existing one.
 			add_text("\r");
 			pos = brk_end + 1;
 		} else if (tag == "p") {
@@ -7484,7 +7487,7 @@ int RichTextLabel::get_content_height() const {
 			// Do not apply to the last line to avoid cutting text.
 			total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + (main->lines[to_line - 1].text_buf->get_line_count() - 1) * theme_cache.line_separation;
 		} else {
-			total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + (main->lines[to_line - 1].text_buf->get_line_count() - 1) * theme_cache.line_separation + theme_cache.paragraph_separation;
+			total_height = main->lines[to_line - 1].offset.y + main->lines[to_line - 1].text_buf->get_size().y + main->lines[to_line - 1].text_buf->get_line_count() * theme_cache.line_separation + theme_cache.paragraph_separation;
 		}
 	}
 	return total_height;
@@ -7853,6 +7856,9 @@ void RichTextLabel::_bind_methods() {
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, RichTextLabel, table_border);
 
 	ADD_CLASS_DEPENDENCY("PopupMenu");
+#ifdef MODULE_REGEX_ENABLED
+	ADD_CLASS_DEPENDENCY("RegEx");
+#endif
 }
 
 TextServer::VisibleCharactersBehavior RichTextLabel::get_visible_characters_behavior() const {
@@ -8045,11 +8051,11 @@ void RichTextLabel::_update_context_menu() {
 
 	int idx = -1;
 
-#define MENU_ITEM_ACTION_DISABLED(m_menu, m_id, m_action, m_disabled)                                                  \
-	idx = m_menu->get_item_index(m_id);                                                                                \
-	if (idx >= 0) {                                                                                                    \
+#define MENU_ITEM_ACTION_DISABLED(m_menu, m_id, m_action, m_disabled) \
+	idx = m_menu->get_item_index(m_id); \
+	if (idx >= 0) { \
 		m_menu->set_item_accelerator(idx, shortcut_keys_enabled ? _get_menu_action_accelerator(m_action) : Key::NONE); \
-		m_menu->set_item_disabled(idx, m_disabled);                                                                    \
+		m_menu->set_item_disabled(idx, m_disabled); \
 	}
 
 	MENU_ITEM_ACTION_DISABLED(menu, MENU_COPY, "ui_copy", !selection.enabled)
